@@ -77,12 +77,34 @@ Newey-West HAC standard errors were computed to address autocorrelation using `c
 ## 4. Empirical Results
 
 ### 4.1 Initial OLS Regression Results (Summary)
-(Refer to Table 4.1 in the full report for detailed OLS outputs for Models 1, 2, and 3)
+**Table 4.1: Initial OLS Estimation Results**
+*(Dependent Variable: monthly_exc_rate)*
 
-*   **Model 1 (Output Gap):** CPI and Output_Gap highly statistically significant with expected signs (positive for CPI, negative for Output Gap).
-*   **Model 2 (Actual IIP):** Similar results to Model 1 in significance and model fit (Adj. R² ≈ 0.944).
-*   **Model 3 (Potential IIP):** CPI significant, but Potential_IIP not statistically significant (p > 0.05); slightly lower model fit.
-*Initial comparison supports focusing on models with the cyclical aspect of IIP (Model 1 or 2).*
+|                     | Model 1 (Output Gap)         | Model 2 (Actual IIP)         | Model 3 (Potential IIP)      |
+|---------------------|:----------------------------:|:----------------------------:|:----------------------------:|
+| **Variables**       |                              |                              |                              |
+| (Intercept)         | 25.600582***                 | 25.594238***                 | 25.609262***                 |
+|                     | (1.001463)                   | (1.001698)                   | (1.066650)                   |
+| CPI                 | 0.308907***                  | 0.310579***                  | 0.310653***                  |
+|                     | (0.006701)                   | (0.006716)                   | (0.007326)                   |
+| Output_Gap          | -0.081020***                 |                              |                              |
+|                     | (0.019044)                   |                              |                              |
+| Actual_IIP          |                              | -0.074965***                 |                              |
+|                     |                              | (0.017653)                   |                              |
+| Potential_IIP       |                              |                              | -0.083017                    |
+|                     |                              |                              | (0.073799)                   |
+|                     |                              |                              |                              |
+| **Diagnostics**     |                              |                              |                              |
+| N                   | 127                          | 127                          | 127                          |
+| R-squared           | 0.9453                       | 0.9452                       | 0.9379                       |
+| Adjusted R-squared  | 0.9444                       | 0.9444                       | 0.9369                       |
+| F-statistic         | 1071                         | 1070                         | 936.7                        |
+| *p-value (F-stat)*  | < 2.2e-16                    | < 2.2e-16                    | < 2.2e-16                    |
+
+---
+*OLS Standard Errors in parentheses.*
+*Significance codes: 0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1*
+*(Note: N is inferred from degrees of freedom for residuals (124) + number of parameters (3), so N = 127 for all models.)*
 
 ### 4.2 Diagnostic Test Results (Model 1: `igd_model`)
 *   **Multicollinearity (VIF):** VIF values for CPI (~1.00) and Output_Gap (~1.00) were extremely low, indicating no multicollinearity.
@@ -94,14 +116,20 @@ Newey-West HAC standard errors were computed to address autocorrelation using `c
 Given significant autocorrelation, Newey-West HAC standard errors were computed for Model 1.
 (Refer to Table 4.2 in the full report for detailed HAC results for Model 1)
 
-**Table: Model 1 Results with HAC Standard Errors (Summary)**
+**Table 4.2: Model 1 Results with HAC Standard Errors**
 *(Dependent Variable: monthly_exc_rate)*
-| Variable    | Estimate | HAC Std. Error | HAC t value | HAC Pr(>|t|) | Significance |
-|-------------|----------|----------------|-------------|---------------|--------------|
-| Intercept   | [Value]  | [Value]        | [Value]     | [Value]       | ***          |
-| CPI         | +0.309   | [Value]        | [Value]     | < 0.001       | ***          |
-| Output_Gap  | -0.081   | [Value]        | [Value]     | < 0.001       | ***          |
-*(Note: Replace `[Value]` with actual values from your Table 4.2. Significance stars: '***' p<0.001, '**' p<0.01, '*' p<0.05)*
+
+| Variable    | Estimate | HAC Std. Error | HAC t value | HAC Pr(>\|t\|) |
+|-------------|:--------:|:--------------:|:-----------:|:--------------:|
+| (Intercept) | 25.60058 | 1.98630        | 12.889      | < 2e-16 ***    |
+| CPI         | 0.30891  | 0.01241        | 24.894      | < 2e-16 ***    |
+| Output_Gap  | -0.08102 | 0.01289        | -6.284      | 5.11e-09 ***   |
+
+---
+*Significance codes: 0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1*
+*Residual standard error: 1.672 on 124 degrees of freedom*
+*Multiple R-squared: 0.9453, Adjusted R-squared: 0.9444*
+*F-statistic (based on HAC covariance): 327.9 on 2 and 124 DF, p-value: < 2.2e-16*
 
 ## 5. Discussion and Interpretation
 
