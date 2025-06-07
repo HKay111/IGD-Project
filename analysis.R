@@ -12,17 +12,8 @@ library(sandwich)
 # --- 1. Load and Prepare Data ---
 
 # Define the filename
-data_file <- "filename.csv"
+data <- filename.csv
 
-# Check if the data file exists in the current working directory
-if (!file.exists(data_file)) {
-  stop(paste("Error: Data file '", data_file, "' not found in the current working directory. ",
-             "Please ensure it is in the same directory as the script.", sep=""))
-}
-
-# Load the data
-print(paste("Loading data from:", data_file))
-data <- read.csv(data_file)
 
 # --- Ensure 'Date' column is in Date format ---
 # You might need to adjust the format string if your CSV stores dates differently
@@ -197,3 +188,4 @@ print("--- Original OLS Summary (for comparison) ---")
 summary(igd_model)
 
 print("--- Code Execution Complete ---")
+
