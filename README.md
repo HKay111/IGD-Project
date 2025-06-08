@@ -50,21 +50,21 @@ A smoothing parameter λ = 14400 was used for monthly data.
 ### 3.3 Time Series Behavior of Key Variables
 
 ![Figure 3.1: Time Series of CPI](images/figure_3.1.png)
-*(Caption remains the same)*
+*Figure 3.1: Time Series of CPI*
 
 ![Figure 3.2: Time Series of Monthly Exchange Rate](images/figure_3.2.png)
-*(Caption remains the same)*
+*Figure 3.2: Time Series of Monthly Exchange Rate*
 
 ![Figure 3.3: Time Series of "Growth Gap"](images/figure_3.3.png)
-*(Caption: Figure 3.3: Time Series of "Growth Gap" (Deviation of MoM IIP Growth from Trend, pp))*
+*Figure 3.3: Time Series of "Growth Gap" (Deviation of MoM IIP Growth from Trend, pp)*
 
 ![Figure 3.4: Combined Time Series of CPI, "Growth Gap", and Monthly Exchange Rate](images/figure_3.4.png)
-*(Caption: Figure 3.4: Combined Time Series of CPI, "Growth Gap", and Monthly Exchange Rate ([Start Date] - [End Date]))*
+*Figure 3.4: Combined Time Series of CPI, "Growth Gap", and Monthly Exchange Rate*
 
 ### 3.4 Visualizing the HP Filter Decomposition
 
 ![Figure 3.5: HP Filter Decomposition of MoM IIP Growth Rate](images/figure_3.5.png)
-*(Caption: Figure 3.5: HP Filter Decomposition of MoM IIP Growth Rate (Actual vs Potential Growth))*
+*Figure 3.5: HP Filter Decomposition of MoM IIP Growth Rate (Actual vs Potential Growth)*
 
 ### 3.5 Econometric Model Specification
 1.  **Model 1 ("Growth Gap" Model - Preferred):** `monthly_exc_rate_t = β₀ + β₁*CPI_t + β₂*Output_Gap_t + ε₁_t` (Referred to as `igd_model`. Note: `Output_Gap` here refers to the "Growth Gap".)
@@ -153,18 +153,18 @@ The initial OLS comparison (Section 4.1) showed that models with the cyclical co
 ### 5.4 Residual Analysis (Visual Diagnostics for Model 1 OLS Residuals)
 
 ![Figure 5.1: Residuals vs. Fitted Values Plot (Model 1)](images/figure_5.1.png)
-*(Caption: Figure 5.1: Residuals vs. Fitted Values Plot (Model 1). Supports homoskedasticity if consistent with Breusch-Pagan test)*
+*Figure 5.1: Residuals vs. Fitted Values Plot (Model 1). Supports homoskedasticity if consistent with Breusch-Pagan test*
 
 ![Figure 5.2: Normal Q-Q Plot of Residuals (Model 1)](images/figure_5.2.png)
-*(Caption: Figure 5.2: Normal Q-Q Plot of Residuals (Model 1). Suggests residuals are approximately normally distributed, with minor tail deviations)*
+*Figure 5.2: Normal Q-Q Plot of Residuals (Model 1). Suggests residuals are approximately normally distributed, with minor tail deviations*
 
 ![Figure 5.3: ACF and PACF Plots of Residuals (Model 1)](images/figure_5.3.png)
-*(Caption: Figure 5.3: ACF and PACF Plots of Residuals (Model 1). Confirms strong positive serial autocorrelation, corroborating DW test)*
+*Figure 5.3: ACF and PACF Plots of Residuals (Model 1). Confirms strong positive serial autocorrelation, corroborating DW test*
 
 ### 5.5 Visual Evidence of Main Relationships (Model 1)
 
 ![Figure 5.4: Monthly Exchange Rate vs. CPI, Colored by "Growth Gap"](images/figure_5.4.png)
-*(Caption: Figure 5.4: Monthly Exchange Rate vs. CPI, Colored by "Growth Gap". Visually confirms the positive relationship between CPI and exchange rate, and the moderating effect of the "Growth Gap")*
+*Figure 5.4: Monthly Exchange Rate vs. CPI, Colored by "Growth Gap". Visually confirms the positive relationship between CPI and exchange rate, and the moderating effect of the "Growth Gap"*
 
 ## 6. Conclusion and Suggestions
 
