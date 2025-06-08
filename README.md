@@ -38,8 +38,8 @@ The study draws upon:
 ### 3.1 Data Sources and Description
 Monthly time series data for India (January 2014 - July 2024):
 1.  **Monthly Exchange Rate (monthly_exc_rate):** Monthly average INR/USD spot rate (INR per USD). Source: RBI DBIE.
-2.  **Consumer Price Index (CPI):** All India CPI (Combined: Rural + Urban). Base year: [2012=100]. Source: NSO, MoSPI.
-3.  **Index of Industrial Production (Actual_IIP):** Monthly IIP. Base year: [2011-12=100]. Source: NSO, MoSPI.
+2.  **Consumer Price Index (CPI):** All India CPI (Combined: Rural + Urban). Base year: 2012=100. Source: NSO, MoSPI.
+3.  **Index of Industrial Production (Actual_IIP):** Monthly IIP. Base year: 2011/12=100. Source: NSO, MoSPI.
 
 ### 3.2 Variable Construction: HP Filter and Output Gap
 The Hodrick-Prescott (HP) filter was applied to `Actual_IIP` to derive:
