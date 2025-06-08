@@ -39,7 +39,7 @@ The study draws upon:
 Monthly time series data for India (January 2014 - July 2024):
 1.  **Monthly Exchange Rate (monthly_exc_rate):** Monthly average INR/USD spot rate (INR per USD). Source: RBI DBIE.
 2.  **Consumer Price Index (CPI):** All India CPI (Combined: Rural + Urban). Base year: 2012=100. Source: NSO, MoSPI.
-3.  **Industrial Production Growth (Actual_IIP):** The **monthly month-over-month percentage growth rate** of the Index of Industrial Production. Source: NSO, MoSPI. *(Method of calculation: [(IIP_t / IIP_t-1) - 1] * 100, derived from the IIP index series with base year 2011-12=100).*
+3.  **Industrial Production Growth (Actual_IIP):** The **monthly month-over-month percentage growth rate** of the Index of Industrial Production. Source: NSO, MoSPI.
 
 ### 3.2 Variable Construction: HP Filter and "Growth Gap" (formerly Output Gap)
 The Hodrick-Prescott (HP) filter was applied to the `Actual_IIP` **(month-over-month percentage growth rate series)** to derive:
@@ -108,7 +108,7 @@ Newey-West HAC standard errors were computed to address autocorrelation using `c
 
 ---
 *OLS Standard Errors in parentheses.*
-*Significance codes: 0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1*
+*Significance codes: 0 ‘* * *’ 0.001 ‘* *’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1*
 *(Note: N is inferred from degrees of freedom for residuals (124) + number of parameters (3), so N = 127 for all models.)*
 
 ### 4.2 Diagnostic Test Results (Model 1: `igd_model`)
@@ -130,7 +130,7 @@ Given significant autocorrelation, Newey-West HAC standard errors were computed 
 | Output_Gap ("Growth Gap")| -0.08102 | 0.01289        | -6.284      | 5.11e-09 ***   |
 
 ---
-*Significance codes: 0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1*
+*Significance codes: 0 ‘* * *’ 0.001 ‘* *’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1*
 *Residual standard error: 1.672 on 124 degrees of freedom*
 *Multiple R-squared: 0.9453, Adjusted R-squared: 0.9444*
 *F-statistic (based on HAC covariance): 327.9 on 2 and 124 DF, p-value: < 2.2e-16*
@@ -194,4 +194,3 @@ The initial OLS comparison (Section 4.1) showed that models with the cyclical co
 *   Conduct sectoral analysis.
 *   Analyze relationships over extended or different data periods.
 
----
