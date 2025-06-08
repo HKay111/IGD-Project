@@ -153,11 +153,9 @@ The initial OLS comparison (Section 4.1) showed that models with the cyclical co
 ### 5.4 Residual Analysis (Visual Diagnostics for Model 1 OLS Residuals)
 
 ![Figure 5.1: Residuals vs. Fitted Values Plot (Model 1)](images/figure_5.1.png)
-
 *Figure 5.1: Residuals vs. Fitted Values Plot (Model 1). Supports homoskedasticity if consistent with Breusch-Pagan test*
 
 ![Figure 5.2: Normal Q-Q Plot of Residuals (Model 1)](images/figure_5.2.png)
-
 *Figure 5.2: Normal Q-Q Plot of Residuals (Model 1). Suggests residuals are approximately normally distributed, with minor tail deviations*
 
 ![Figure 5.3: ACF and PACF Plots of Residuals (Model 1)](images/figure_5.3.png)
