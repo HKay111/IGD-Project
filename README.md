@@ -108,7 +108,7 @@ Newey-West HAC standard errors were computed to address autocorrelation using `c
 
 ---
 *OLS Standard Errors in parentheses.*
-*Significance codes: 0 ‘* * *’ 0.001 ‘* *’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1*
+*Significance codes: 0 ‘\***’ 0.001 ‘\**’ 0.01 ‘\*’ 0.05 ‘.’ 0.1 ‘ ’ 1*
 *(Note: N is inferred from degrees of freedom for residuals (124) + number of parameters (3), so N = 127 for all models.)*
 
 ### 4.2 Diagnostic Test Results (Model 1: `igd_model`)
@@ -130,7 +130,7 @@ Given significant autocorrelation, Newey-West HAC standard errors were computed 
 | Output_Gap ("Growth Gap")| -0.08102 | 0.01289        | -6.284      | 5.11e-09 ***   |
 
 ---
-*Significance codes: 0 ‘* * *’ 0.001 ‘* *’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1*
+*Significance codes: 0 ‘\***’ 0.001 ‘\**’ 0.01 ‘\*’ 0.05 ‘.’ 0.1 ‘ ’ 1*
 *Residual standard error: 1.672 on 124 degrees of freedom*
 *Multiple R-squared: 0.9453, Adjusted R-squared: 0.9444*
 *F-statistic (based on HAC covariance): 327.9 on 2 and 124 DF, p-value: < 2.2e-16*
