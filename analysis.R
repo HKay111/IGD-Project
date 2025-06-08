@@ -14,18 +14,6 @@ library(sandwich)
 # Define the filename
 data <- filename.csv
 
-
-# --- Ensure 'Date' column is in Date format ---
-# You might need to adjust the format string if your CSV stores dates differently
-# Common formats: "%Y-%m-%d", "%m/%d/%Y", "%d-%m-%Y"
-if ("Date" %in% colnames(data) && !inherits(data$Date, "Date")) {
-  print("Converting 'Date' column to Date objects...")
-  data$Date <- as.Date(data$Date) # Assumes standard R date format or YYYY-MM-DD
-} else if (!"Date" %in% colnames(data)) {
-  stop("Error: 'Date' column not found in the CSV file.")
-}
-
-
 # Order data by date (essential for time series)
 data <- data[order(data$Date), ]
 
