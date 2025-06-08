@@ -9,6 +9,7 @@ library(zoo)
 library(patchwork) # Optional
 library(sandwich)
 
+
 # --- 1. Load and Prepare Data ---
 
 # Define the filename
@@ -47,6 +48,7 @@ print(dwtest(model3))
 
 # --- 4. Generate Plots ---
 plot_data <- fortify.zoo(data_zoo)
+plot_data$Index <- as.Date(plot_data$Index)
 
 # Plot 4.1: CPI
 p_cpi <- ggplot(plot_data, aes(x = Index, y = CPI)) +
@@ -69,7 +71,6 @@ p_og <- ggplot(plot_data, aes(x = Index, y = Output_Gap)) +
   labs(title = "Time Series of Output Gap", x = "Date", y = "Output Gap") +
   theme_minimal()
 print(p_og)
-# ggsave("time_series_output_gap.png", p_og)
 
 # Plot 4.4: Combined Time Series
 p_comb <- ggplot(plot_data, aes(x = Index)) +
@@ -80,7 +81,6 @@ p_comb <- ggplot(plot_data, aes(x = Index)) +
   scale_color_manual(name = "Legend", values = c("CPI" = "blue", "Exchange Rate" = "green", "Output Gap" = "purple")) +
   theme_minimal()
 print(p_comb)
-# ggsave("time_series_combined.png", p_comb)
 
 # Plot 4.5: HP Filter Decomposition
 p_hp <- ggplot(plot_data, aes(x = Index)) +
@@ -90,7 +90,6 @@ p_hp <- ggplot(plot_data, aes(x = Index)) +
   scale_color_manual(name = "Series", values = c("Actual IIP" = "black", "Potential IIP (HP Trend)" = "red")) +
   theme_minimal()
 print(p_hp)
-# ggsave("hp_filter_decomposition.png", p_hp)
 
 # Plot 4.6: Scatter Plot of Predictors (CPI vs Output Gap)
 p_scatter_preds <- ggplot(plot_data, aes(x = CPI, y = Output_Gap)) +
@@ -98,7 +97,6 @@ p_scatter_preds <- ggplot(plot_data, aes(x = CPI, y = Output_Gap)) +
   labs(title = "Scatter Plot of Predictors (Model 1)", x = "CPI", y = "Output Gap") +
   theme_minimal()
 print(p_scatter_preds)
-# ggsave("scatter_predictors.png", p_scatter_preds)
 
 # Plot 4.7: Scatter Plot for Report
 p_report_scatter <- ggplot(plot_data, aes(x = CPI, y = monthly_exc_rate)) +
@@ -109,7 +107,6 @@ p_report_scatter <- ggplot(plot_data, aes(x = CPI, y = monthly_exc_rate)) +
        x = "CPI", y = "Monthly Exchange Rate", color = "Output_Gap") +
   theme_minimal()
 print(p_report_scatter)
-# ggsave("report_scatter_color.png", p_report_scatter)
 
 
 # --- 5. Diagnostic Tests and Plots for Model 1 (igd_model) ---
