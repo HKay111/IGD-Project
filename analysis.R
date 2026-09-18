@@ -1,176 +1,169 @@
-# --- 0. Load Libraries ---
-library(dynlm)
-library(ggplot2)
-library(mFilter)
-library(lmtest)
-library(car)
+# Re-analysis of the INR/USD exchange rate project.
+#
+# The original regression used the exchange rate level, the CPI level and an
+# HP-filtered IIP growth cycle. The exchange rate and CPI are both I(1), so
+# the levels fit was largely spurious. This version checks stationarity and
+# cointegration first, then models monthly depreciation on stationary
+# variables.
+#
+# Data note: "Actual_IIP" is year-on-year IIP growth in percent
+# (April 2020 = -57.3), not month-on-month growth.
+
+library(readr)
 library(lubridate)
-library(zoo)
-library(patchwork) # Optional
+library(dplyr)
+library(ggplot2)
+
+library(urca)
+library(bootUR)
+library(ARDL)
+library(mFilter)
+
+library(lmtest)
 library(sandwich)
+library(modelsummary)
+library(sessioninfo)
 
+set.seed(123)
+dir.create("tables", showWarnings = FALSE)
 
-# --- 1. Load and Prepare Data ---
+# --- 1. Data ----------------------------------------------------------------
 
-# Define the filename
-data <- filename.csv
-
-# Order data by date (essential for time series)
+data <- read_csv("data/filename.csv", show_col_types = FALSE)
+data$Date <- dmy(data$Date)
 data <- data[order(data$Date), ]
+data$IIP_growth_yoy <- data$Actual_IIP
 
-# Convert relevant columns to a zoo time series object for dynlm
-data_zoo <- zoo(data[, c("monthly_exc_rate", "CPI", "Actual_IIP")], order.by = data$Date)
+# Monthly depreciation and inflation in percent
+data$dlog_exc <- 100 * c(NA, diff(log(data$monthly_exc_rate)))
+data$infl_m   <- 100 * c(NA, diff(log(data$CPI)))
+data$infl_yoy <- 100 * (log(data$CPI) - lag(log(data$CPI), 12))
+data$l_dlog_exc <- c(NA, head(data$dlog_exc, -1))
 
-# --- 2. Generate HP Filter Components ---
-hp_filtered <- hpfilter(data_zoo$Actual_IIP, freq = 14400)
-data_zoo$Potential_IIP <- hp_filtered$trend
-data_zoo$Output_Gap    <- hp_filtered$cycle
+# HP trend and cycle of IIP growth, plus two alternative smoothing parameters
+data$hp_trend     <- as.numeric(hpfilter(data$IIP_growth_yoy, freq = 14400)$trend)
+data$iip_cycle    <- as.numeric(hpfilter(data$IIP_growth_yoy, freq = 14400)$cycle)
+data$cycle_1600   <- as.numeric(hpfilter(data$IIP_growth_yoy, freq = 1600)$cycle)
+data$cycle_129600 <- as.numeric(hpfilter(data$IIP_growth_yoy, freq = 129600)$cycle)
 
-# --- 3. Run Regression Models ---
-# Model 1 (Preferred)
-igd_model <- dynlm(formula = monthly_exc_rate ~ CPI + Output_Gap, data = data_zoo)
-print("--- Summary: Model 1 (Output Gap) ---")
-summary(igd_model)
+# --- 2. Plots ---------------------------------------------------------------
 
-# Model 2
-model2 <- dynlm(formula = monthly_exc_rate ~ CPI + Actual_IIP, data = data_zoo)
-print("--- Summary: Model 2 (Actual IIP) ---")
-summary(model2)
-print("Durbin-Watson Test (Model 2):")
-print(dwtest(model2))
+p_exc <- ggplot(data, aes(Date, monthly_exc_rate)) +
+  geom_line(colour = "#0072B2") +
+  labs(title = "Monthly INR/USD exchange rate", x = NULL, y = "INR per USD") +
+  theme_minimal(base_size = 11)
 
-# Model 3
-model3 <- dynlm(formula = monthly_exc_rate ~ CPI + Potential_IIP, data = data_zoo)
-print("--- Summary: Model 3 (Potential IIP) ---")
-summary(model3)
-print("Durbin-Watson Test (Model 3):")
-print(dwtest(model3))
+p_cpi <- ggplot(data, aes(Date, CPI)) +
+  geom_line(colour = "#D55E00") +
+  labs(title = "All-India CPI index (2012 = 100)", x = NULL, y = "Index") +
+  theme_minimal(base_size = 11)
 
-# --- 4. Generate Plots ---
-plot_data <- fortify.zoo(data_zoo)
-plot_data$Index <- as.Date(plot_data$Index)
+p_iip <- ggplot(data, aes(Date)) +
+  geom_line(aes(y = IIP_growth_yoy, colour = "Year-on-year growth")) +
+  geom_line(aes(y = hp_trend, colour = "HP trend (lambda = 14400)"), linewidth = 1) +
+  scale_colour_manual(values = c("Year-on-year growth" = "grey30",
+                                 "HP trend (lambda = 14400)" = "#D55E00")) +
+  labs(title = "IIP year-on-year growth and HP trend", x = NULL,
+       y = "Percent", colour = NULL) +
+  theme_minimal(base_size = 11)
 
-# Plot 4.1: CPI
-p_cpi <- ggplot(plot_data, aes(x = Index, y = CPI)) +
-  geom_line(color = "blue") +
-  labs(title = "Time Series of CPI", x = "Date", y = "CPI") +
-  theme_minimal()
-print(p_cpi)
+ggsave("images/fig_exchange_rate.png", p_exc, width = 8, height = 3.2, dpi = 300)
+ggsave("images/fig_cpi.png", p_cpi, width = 8, height = 3.2, dpi = 300)
+ggsave("images/fig_iip_growth_trend.png", p_iip, width = 8, height = 3.6, dpi = 300)
 
-# Plot 4.2: Monthly Exchange Rate
-p_exr <- ggplot(plot_data, aes(x = Index, y = monthly_exc_rate)) +
-  geom_line(color = "green") +
-  labs(title = "Time Series of Monthly Exchange Rate", x = "Date", y = "Exchange Rate") +
-  theme_minimal()
-print(p_exr)
+# --- 3. Unit root tests -----------------------------------------------------
+# ADF with up to 6 lags chosen by AIC, and KPSS.
 
-# Plot 4.3: Output Gap
-p_og <- ggplot(plot_data, aes(x = Index, y = Output_Gap)) +
-  geom_line(color = "purple") +
-  geom_hline(yintercept = 0, linetype = "dashed", color = "grey50") +
-  labs(title = "Time Series of Output Gap", x = "Date", y = "Output Gap") +
-  theme_minimal()
-print(p_og)
+summary(ur.df(data$monthly_exc_rate, type = "drift", lags = 6, selectlags = "AIC"))
+summary(ur.kpss(data$monthly_exc_rate, type = "mu", lags = "short"))
 
-# Plot 4.4: Combined Time Series
-p_comb <- ggplot(plot_data, aes(x = Index)) +
-  geom_line(aes(y = CPI, color = "CPI")) +
-  geom_line(aes(y = monthly_exc_rate, color = "Exchange Rate")) +
-  geom_line(aes(y = Output_Gap, color = "Output Gap")) +
-  labs(title = "Time Series of CPI, Output Gap, Monthly Exchange Rate", x = "Date", y = "Values") +
-  scale_color_manual(name = "Legend", values = c("CPI" = "blue", "Exchange Rate" = "green", "Output Gap" = "purple")) +
-  theme_minimal()
-print(p_comb)
+summary(ur.df(data$CPI, type = "drift", lags = 6, selectlags = "AIC"))
+summary(ur.kpss(data$CPI, type = "mu", lags = "short"))
 
-# Plot 4.5: HP Filter Decomposition
-p_hp <- ggplot(plot_data, aes(x = Index)) +
-  geom_line(aes(y = Actual_IIP, color = "Actual IIP")) +
-  geom_line(aes(y = Potential_IIP, color = "Potential IIP (HP Trend)"), linetype = "dashed") +
-  labs(title = "HP Filter Decomposition of IIP", x = "Date", y = "IIP Index") +
-  scale_color_manual(name = "Series", values = c("Actual IIP" = "black", "Potential IIP (HP Trend)" = "red")) +
-  theme_minimal()
-print(p_hp)
+summary(ur.df(data$IIP_growth_yoy, type = "drift", lags = 6, selectlags = "AIC"))
+summary(ur.kpss(data$IIP_growth_yoy, type = "mu", lags = "short"))
 
-# Plot 4.6: Scatter Plot of Predictors (CPI vs Output Gap)
-p_scatter_preds <- ggplot(plot_data, aes(x = CPI, y = Output_Gap)) +
-  geom_point(alpha = 0.6) +
-  labs(title = "Scatter Plot of Predictors (Model 1)", x = "CPI", y = "Output Gap") +
-  theme_minimal()
-print(p_scatter_preds)
+summary(ur.df(na.omit(data$dlog_exc), type = "drift", lags = 6, selectlags = "AIC"))
+summary(ur.kpss(na.omit(data$dlog_exc), type = "mu", lags = "short"))
 
-# Plot 4.7: Scatter Plot for Report
-p_report_scatter <- ggplot(plot_data, aes(x = CPI, y = monthly_exc_rate)) +
-  geom_point(aes(color = Output_Gap), alpha = 0.7) +
-  geom_smooth(method = "lm", se = FALSE, color = "blue") +
-  scale_color_gradient2(low = "darkblue", mid = "grey", high = "lightblue", midpoint = 0) +
-  labs(title = "Linear Model: monthly_exc_rate ~ CPI + Output_Gap",
-       x = "CPI", y = "Monthly Exchange Rate", color = "Output_Gap") +
-  theme_minimal()
-print(p_report_scatter)
+summary(ur.df(na.omit(data$infl_m), type = "drift", lags = 6, selectlags = "AIC"))
+summary(ur.kpss(na.omit(data$infl_m), type = "mu", lags = "short"))
 
+# Bootstrap versions for the two series that matter most
+adf(data$monthly_exc_rate)
+boot_adf(data$monthly_exc_rate, B = 999, do_parallel = FALSE, show_progress = FALSE)
+adf(data$CPI)
+boot_adf(data$CPI, B = 999, do_parallel = FALSE, show_progress = FALSE)
 
-# --- 5. Diagnostic Tests and Plots for Model 1 (igd_model) ---
-print("--- Diagnostic Tests for Model 1 ---")
+# --- 4. The original levels regression, for reference ------------------------
 
-# 5.1 VIF Test (Multicollinearity)
-if (length(coef(igd_model)) > 2) {
-  vif_values <- vif(igd_model)
-  print("VIF Values:")
-  print(vif_values)
-} else {
-  print("VIF test requires at least two predictors.")
-}
+m_naive <- lm(monthly_exc_rate ~ CPI + iip_cycle, data = data)
+summary(m_naive)
+dwtest(m_naive)
+coeftest(m_naive, vcov. = NeweyWest(m_naive, prewhite = FALSE, adjust = TRUE))
 
-# 5.2 Breusch-Pagan Test (Heteroskedasticity)
-bp_test <- bptest(igd_model)
-print("Breusch-Pagan Test (Homoskedasticity):")
-print(bp_test)
+png("images/fig_naive_residual_acf.png", width = 1200, height = 350, res = 150)
+acf(as.numeric(na.omit(residuals(m_naive))),
+    main = "ACF of residuals: original levels regression", lag.max = 24)
+dev.off()
 
-# 5.3 Durbin-Watson Test for Model 1
-dw_test_model1 <- dwtest(igd_model)
-print("Durbin-Watson Test (Model 1 Autocorrelation):")
-print(dw_test_model1)
+# --- 5. Cointegration: ARDL bounds test --------------------------------------
 
-# 5.4 Standard Regression Diagnostic Plots (using base R plot)
-print("Generating Base R Diagnostic Plots...")
-par(mfrow = c(2, 2))
-plot(igd_model, which = 1) # Residuals vs Fitted
-plot(igd_model, which = 2) # Normal Q-Q
-plot(igd_model, which = 3) # Scale-Location
-plot(igd_model, which = 5) # Residuals vs Leverage
-par(mfrow = c(1, 1))
+ardl_aic <- auto_ardl(monthly_exc_rate ~ CPI + iip_cycle, data = as.data.frame(data),
+                      max_order = 6, selection = "AIC")
+ardl_bic <- auto_ardl(monthly_exc_rate ~ CPI + iip_cycle, data = as.data.frame(data),
+                      max_order = 6, selection = "BIC")
 
-# 5.5 Autocorrelation Plots of Residuals
-print("Generating ACF/PACF Plots of Residuals...")
-model_residuals <- residuals(igd_model)
+bounds_f_test(ardl_aic$best_model, case = 3, exact = TRUE, R = 20000)
+bounds_t_test(uecm(ardl_aic$best_model), case = 3, exact = TRUE, R = 20000)
+bounds_f_test(ardl_bic$best_model, case = 3, exact = TRUE, R = 20000)
+bounds_t_test(uecm(ardl_bic$best_model), case = 3, exact = TRUE, R = 20000)
 
-residuals_complete_ts_structure <- na.omit(model_residuals)
-if (inherits(residuals_complete_ts_structure, "zoo")) {
-  residuals_numeric <- as.numeric(coredata(residuals_complete_ts_structure))
-} else {
-  residuals_numeric <- as.numeric(residuals_complete_ts_structure)
-}
+# --- 6. Corrected model on stationary variables ------------------------------
 
-if (length(residuals_numeric) > 1 && all(is.finite(residuals_numeric))) {
-  print("Sufficient finite numeric residuals found. Attempting to plot ACF/PACF...")
-  par(mfrow = c(1, 2))
-  acf(residuals_numeric, main = "ACF of Residuals (Model 1, NAs removed)")
-  pacf(residuals_numeric, main = "PACF of Residuals (Model 1, NAs removed)")
-  par(mfrow = c(1, 1))
-} else if (length(residuals_numeric) <= 1) {
-  print("Not enough non-NA residuals to generate ACF/PACF plots after na.omit.")
-} else {
-  print("Residuals contain non-finite values. Cannot plot ACF/PACF.")
-}
+m1 <- lm(dlog_exc ~ infl_m + iip_cycle, data = data)
+m2 <- lm(dlog_exc ~ infl_yoy + iip_cycle, data = data)
+m3 <- lm(dlog_exc ~ infl_m + iip_cycle + l_dlog_exc, data = data)
 
-# --- 6. Newey-West HAC Standard Errors for Model 1 ---
-hac_se <- NeweyWest(igd_model, prewhite = FALSE, adjust = TRUE)
+hac <- function(x) NeweyWest(x, prewhite = FALSE, adjust = TRUE)
 
-print("--- Summary: Model 1 with Newey-West HAC Standard Errors ---")
-print(coeftest(igd_model, vcov. = hac_se))
+coeftest(m1, vcov. = hac(m1))
 
-print("--- Original OLS Summary (for comparison) ---")
-summary(igd_model)
+modelsummary(list("Monthly inflation" = m1,
+                  "12-month inflation" = m2,
+                  "With 1 lag" = m3),
+             vcov = hac,
+             stars = TRUE,
+             gof_map = c("nobs", "r.squared", "adj.r.squared"),
+             output = "tables/corrected_models.md")
 
-print("--- Code Execution Complete ---")
+# Same model with different HP smoothing parameters for the cycle
+m_1600 <- lm(dlog_exc ~ infl_m + cycle_1600, data = data)
+m_129600 <- lm(dlog_exc ~ infl_m + cycle_129600, data = data)
 
+coeftest(m_1600, vcov. = hac(m_1600))
+coeftest(m_129600, vcov. = hac(m_129600))
+
+modelsummary(list("HP 14400" = m1,
+                  "HP 1600" = m_1600,
+                  "HP 129600" = m_129600),
+             vcov = hac,
+             stars = TRUE,
+             gof_map = c("nobs", "adj.r.squared"),
+             output = "tables/cycle_robustness.md")
+
+# Scatter plot of the corrected model
+scatter_data <- data[complete.cases(data[, c("infl_m", "dlog_exc")]), ]
+p_scatter <- ggplot(scatter_data, aes(infl_m, dlog_exc)) +
+  geom_point(alpha = 0.6, colour = "#0072B2") +
+  geom_smooth(method = "lm", formula = y ~ x, se = FALSE, colour = "#D55E00") +
+  labs(title = "Monthly depreciation vs monthly inflation",
+       x = "Monthly inflation (%)", y = "Monthly depreciation (%)") +
+  theme_minimal(base_size = 11)
+
+ggsave("images/fig_scatter_depreciation_inflation.png", p_scatter,
+       width = 6, height = 4, dpi = 300)
+
+# --- 7. Package versions -----------------------------------------------------
+
+writeLines(capture.output(session_info()), "session_info.txt")
